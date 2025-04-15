@@ -16,6 +16,7 @@ class _LoginPageState extends State<LoginPage> {
     print("Continue with phone: ${_phoneController.text}");
   }
 
+  // currently working
   void _handleGoogleSignIn() {
     print("Sign in with Google");
   }
