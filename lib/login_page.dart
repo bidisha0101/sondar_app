@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Added Import
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,13 +14,115 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _phoneController = TextEditingController();
   bool _agreed = false;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  bool _isSigningInWithGoogle = false; // To prevent multiple clicks
+
   void _handleContinue() {
     print("Continue with phone: ${_phoneController.text}");
   }
 
   // currently working
-  void _handleGoogleSignIn() {
-    print("Sign in with Google");
+  Future<void> _handleGoogleSignIn() async {
+    if (_isSigningInWithGoogle) return; // Prevent multiple sign-in attempts
+
+    // Basic check for terms agreement (optional for Google Sign In, but consistent)
+    if (!_agreed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please agree to the Terms & Conditions and Privacy Policy before signing in.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSigningInWithGoogle = true;
+    });
+
+    try {
+      // Trigger the Google Authentication flow.
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      // If the user canceled the sign-in
+      if (googleUser == null) {
+        print('Google Sign In cancelled by user.');
+        // No error, just user cancellation. Stay on the login page.
+      } else {
+        // Obtain the auth details from the request.
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        // Create a new credential for Firebase
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken,
+          idToken: googleAuth.idToken,
+        );
+
+        // Sign in to Firebase with the Google credential.
+        final UserCredential userCredential = await _auth.signInWithCredential(
+          credential,
+        );
+        final User? user = userCredential.user;
+
+        if (user != null) {
+          print('Successfully signed in with Google: ${user.displayName}');
+          // IMPORTANT: Navigation should be handled by AuthWrapper listening to authStateChanges
+          // No explicit Navigator.pushReplacement here.
+        } else {
+          print('Google Sign in succeeded but failed to get Firebase user.');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Failed to retrieve user data after Google Sign In.',
+                ),
+              ),
+            );
+          }
+        }
+      }
+    } on FirebaseAuthException catch (e) {
+      print(
+        'FirebaseAuthException during Google Sign In: ${e.code} - ${e.message}',
+      );
+      String errorMessage =
+          'An error occurred during Google Sign In. Please try again.';
+      if (e.code == 'account-exists-with-different-credential') {
+        errorMessage =
+            'An account already exists with the same email address but different sign-in credentials. Try signing in using a provider associated with this email address.';
+      } else if (e.code == 'network-request-failed') {
+        errorMessage =
+            'Network error during Google Sign In. Please check your connection.';
+      }
+      // Add more specific error handling if needed
+
+      if (mounted) {
+        // Check if the widget is still in the tree
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
+    } catch (e) {
+      print('An unexpected error occurred during Google Sign In: $e');
+      if (mounted) {
+        // Check if the widget is still in the tree
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An unexpected error occurred. Please try again.'),
+          ),
+        );
+      }
+    } finally {
+      // Ensure the widget is still mounted before calling setState
+      if (mounted) {
+        setState(() {
+          _isSigningInWithGoogle = false; // Allow clicking again
+        });
+      }
+    }
   }
 
   @override
