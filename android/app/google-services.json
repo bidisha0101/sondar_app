@@ -1,0 +1,98 @@
+{
+  "project_info": {
+    "project_number": "557277833939",
+    "project_id": "sondar-test-bfd0e",
+    "storage_bucket": "sondar-test-bfd0e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:557277833939:android:1eda50bfaf8c14ed07c226",
+        "android_client_info": {
+          "package_name": "com.example.auth_test"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "557277833939-ku9pkb26n8b9bp21ihirpa6acnbcql3o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.auth_test",
+            "certificate_hash": "09c3b909f47c5a2c7f83bd1117661415d6dd3ef7"
+          }
+        },
+        {
+          "client_id": "557277833939-c86om8dfplc5bdipc644sehfpa72dgjs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzVLr5sklpkaTJK9T_uOZWkFquYUlvmCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "557277833939-c86om8dfplc5bdipc644sehfpa72dgjs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "557277833939-3sspm5v6hevg5etaf98sdm1alalea10k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sonderApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:557277833939:android:737e25550dd90c3607c226",
+        "android_client_info": {
+          "package_name": "com.example.sonder_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "557277833939-dbvslhfodidk9fa301tt57418tpsu2lj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sonder_app",
+            "certificate_hash": "09c3b909f47c5a2c7f83bd1117661415d6dd3ef7"
+          }
+        },
+        {
+          "client_id": "557277833939-c86om8dfplc5bdipc644sehfpa72dgjs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzVLr5sklpkaTJK9T_uOZWkFquYUlvmCU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "557277833939-c86om8dfplc5bdipc644sehfpa72dgjs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "557277833939-3sspm5v6hevg5etaf98sdm1alalea10k.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.sonderApp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
