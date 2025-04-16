@@ -6,6 +6,7 @@ import 'firebase_options.dart'; // Import generated options
 import 'package:sondar/login_page.dart';
 import 'package:sondar/location_page.dart';
 import 'package:sondar/manual_location_page.dart';
+import 'package:sondar/otp_page.dart';
 
 void main() async {
   // Make main async
@@ -43,6 +44,7 @@ class MyApp extends StatelessWidget {
         '/location': (context) => const LocationPage(),
         '/manual-location': (context) => const ManualLocationPage(),
         '/login': (context) => const LoginPage(),
+        '/otp-page': (context) => const OtpPage(),
       },
     );
   }
