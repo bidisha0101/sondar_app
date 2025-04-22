@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,13 +14,127 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _phoneController = TextEditingController();
   bool _agreed = false;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  bool _isSigningInWithGoogle = false;
+
   void _handleContinue() {
-    print("Continue with phone: ${_phoneController.text}");
+    final phone = _phoneController.text.trim();
+
+    if (phone.isEmpty ||
+        phone.length != 10 ||
+        !RegExp(r'^\d{10}$').hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a valid 10-digit phone number'),
+        ),
+      );
+      return;
+    }
+
+    if (!_agreed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please agree to the Terms & Conditions')),
+      );
+      return;
+    }
+
+    print("📞 Phone number entered: +91$phone");
+
+    Navigator.pushNamed(
+      context,
+      '/otp-page', // ✅ updated route
+      arguments: {'phone': phone},
+    );
   }
 
-  // currently working
-  void _handleGoogleSignIn() {
-    print("Sign in with Google");
+  Future<void> _handleGoogleSignIn() async {
+    if (_isSigningInWithGoogle) return;
+
+    if (!_agreed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Please agree to the Terms & Conditions and Privacy Policy before signing in.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSigningInWithGoogle = true;
+    });
+
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        print('Google Sign In cancelled by user.');
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _auth.signInWithCredential(
+        credential,
+      );
+      final User? user = userCredential.user;
+
+      if (user != null) {
+        print('Successfully signed in with Google: ${user.displayName}');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/location');
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to retrieve user data after Google Sign In.'),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      print(
+        'FirebaseAuthException during Google Sign In: ${e.code} - ${e.message}',
+      );
+      String errorMessage =
+          'An error occurred during Google Sign In. Please try again.';
+
+      if (e.code == 'account-exists-with-different-credential') {
+        errorMessage =
+            'An account already exists with the same email using different credentials.';
+      } else if (e.code == 'network-request-failed') {
+        errorMessage =
+            'Network error during Google Sign In. Please check your connection.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(errorMessage)));
+      }
+    } catch (e) {
+      print('An unexpected error occurred during Google Sign In: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An unexpected error occurred. Please try again.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSigningInWithGoogle = false;
+        });
+      }
+    }
   }
 
   @override
@@ -30,7 +146,6 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // Skip Button
               Align(
                 alignment: Alignment.topRight,
                 child: TextButton(
@@ -41,15 +156,11 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 32),
-
-              // Main Content
               Expanded(
                 child: Center(
                   child: SingleChildScrollView(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
                           "Welcome!",
@@ -64,10 +175,7 @@ class _LoginPageState extends State<LoginPage> {
                           "Login or Sign up to continue",
                           style: TextStyle(fontSize: 14, color: Colors.grey),
                         ),
-
                         const SizedBox(height: 32),
-
-                        // Phone Input
                         Row(
                           children: [
                             Container(
@@ -107,9 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 16),
-
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue.shade600,
@@ -121,10 +227,7 @@ class _LoginPageState extends State<LoginPage> {
                           onPressed: _handleContinue,
                           child: const Text("Continue"),
                         ),
-
                         const SizedBox(height: 24),
-
-                        // Divider
                         Row(
                           children: const [
                             Expanded(child: Divider()),
@@ -138,10 +241,7 @@ class _LoginPageState extends State<LoginPage> {
                             Expanded(child: Divider()),
                           ],
                         ),
-
                         const SizedBox(height: 24),
-
-                        // Google Sign-In Button
                         OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: Colors.grey.shade300),
@@ -156,10 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                           label: const Text("Use Google Account"),
                           onPressed: _handleGoogleSignIn,
                         ),
-
                         const SizedBox(height: 24),
-
-                        // Terms and Conditions
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
